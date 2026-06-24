@@ -160,9 +160,7 @@ def decrease_quantity(request, cart_id):
 
     item.delete()
 
-    return JsonResponse({
-        "quantity": 0
-    })
+    return redirect('cart')
 
 
 @login_required
@@ -515,3 +513,21 @@ def get_location(request, order_id):
         "lng": order.delivery_lng,
         "status": order.delivery_status
     })
+
+def cart_increase_quantity(request, cart_id):
+    cart = get_object_or_404(Cart, id=cart_id)
+    cart.quantity += 1
+    cart.save()
+    return redirect('cart')
+
+
+def cart_decrease_quantity(request, cart_id):
+    cart = get_object_or_404(Cart, id=cart_id)
+
+    if cart.quantity > 1:
+        cart.quantity -= 1
+        cart.save()
+    else:
+        cart.delete()
+
+    return redirect('cart')

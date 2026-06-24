@@ -45,15 +45,15 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 text-center">
-                    <a href="{% url 'decrease_quantity' item.id %}" class="btn btn-danger btn-sm">-</a>
+             <div class="col-md-3 text-center">
+   <a href="{% url 'cart_decrease_quantity' item.id %}" class="btn btn-danger btn-sm">-</a>
 
-                    <span class="mx-3 fw-bold">
-                        {{ item.quantity }}
-                    </span>
+<span class="mx-3 fw-bold">
+    {{ item.quantity }}
+</span>
 
-                    <a href="{% url 'increase_quantity' item.id %}" class="btn btn-success btn-sm">+</a>
-                </div>
+<a href="{% url 'cart_increase_quantity' item.id %}" class="btn btn-success btn-sm">+</a>
+</div>
 
                 <div class="col-md-2 text-center">
                     <strong>₹{{ item.total_price }}</strong>
