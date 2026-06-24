@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body style="background:#f5f5f5;">
+
+<div class="container mt-5">
+
+    <h2 class="mb-4 text-center">Admin Dashboard</h2>
+
+    <div class="row mb-4">
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white p-3 shadow">
+                <h5>Total Products</h5>
+                <h2>{{ total_products }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white p-3 shadow">
+                <h5>Total Orders</h5>
+                <h2>{{ total_orders }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-dark p-3 shadow">
+                <h5>Total Users</h5>
+                <h2>{{ total_users }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-danger text-white p-3 shadow">
+                <h5>Total Revenue</h5>
+                <h2>₹{{ total_revenue }}</h2>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card p-4 shadow mb-4">
+        <h4 class="mb-3">Statistics Chart</h4>
+
+        <canvas id="revenueChart" height="100"></canvas>
+    </div>
+
+    <a href="{% url 'home' %}" class="btn btn-dark">
+        Back Home
+    </a>
+
+</div>
+<div class="card p-4 shadow mt-4">
+    <h4>Low Stock Products</h4>
+
+    {% for product in low_stock_products %}
+        <p>
+            {{ product.name }} - Only {{ product.stock }} left
+        </p>
+    {% empty %}
+        <p>All products have enough stock.</p>
+    {% endfor %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const totalProducts = Number("{{ total_products|default:0 }}");
+const totalOrders = Number("{{ total_orders|default:0 }}");
+const totalUsers = Number("{{ total_users|default:0 }}");
+const totalRevenue = Number("{{ total_revenue|default:0 }}");
+
+const ctx = document.getElementById("revenueChart");
+
+new Chart(ctx, {
+    type: "bar",
+    data: {
+        labels: ["Products", "Orders", "Users", "Revenue"],
+        datasets: [{
+            label: "Instamart Statistics",
+            data: [
+                totalProducts,
+                totalOrders,
+                totalUsers,
+                totalRevenue
+            ],
+
+            backgroundColor: [
+                "rgba(25,135,84,0.8)",
+                "rgba(13,110,253,0.8)",
+                "rgba(255,193,7,0.8)",
+                "rgba(220,53,69,0.8)"
+            ],
+
+            borderColor: [
+                "#198754",
+                "#0d6efd",
+                "#ffc107",
+                "#dc3545"
+            ],
+
+            borderWidth: 2
+        }]
+    },
+
+    options: {
+        responsive: true,
+
+        plugins: {
+            legend: {
+                display: true
+            }
+        },
+
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+
+</body>
+</html>

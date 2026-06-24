@@ -1,0 +1,329 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Swiggy Instamart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+    background: #f4fbff;
+    font-family: Arial, sans-serif;
+}
+
+.navbar-brand img {
+    height: 45px;
+    background: white;
+    padding: 4px;
+    border-radius: 10px;
+}
+
+.product-card {
+    border-radius: 20px;
+    background: white;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    padding: 10px;
+    height: 100%;
+    position: relative;
+}
+
+.product-img {
+    height: 180px;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+/* small + / - button top right */
+.quantity-box {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: white;
+    border: 1.5px solid blue;
+    border-radius: 10px;
+    padding: 2px 7px;
+    min-width: 48px;
+    height: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.qty-btn {
+    border: none;
+    background: transparent;
+    color: blue;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+}
+
+.qty-count {
+    color: blue;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.offer-box {
+    background: linear-gradient(135deg, #00c853, #00e676);
+    color: white;
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    margin: 30px 0;
+}
+
+.section-title {
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.category-img {
+    height: 180px;
+    object-fit: cover;
+    border-radius: 16px 16px 0 0;
+}
+
+@media(max-width: 768px) {
+    .search-form {
+        width: 100% !important;
+        margin-top: 15px;
+    }
+
+    .quantity-box {
+        top: 10px;
+        right: 10px;
+        height: 28px;
+        min-width: 44px;
+    }
+
+    .qty-btn {
+        font-size: 18px;
+    }
+
+    .qty-count {
+        font-size: 14px;
+    }
+}
+    </style>       
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top shadow">
+    <div class="container">
+
+        <a class="navbar-brand d-flex align-items-center fw-bold" href="{% url 'home' %}">
+            <img src="{% static 'images/instamart-logo.png' %}" alt="Logo" class="me-2">
+            Swiggy Instamart
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+
+            <form class="row g-2 mx-auto w-75 search-form" method="GET">
+                <div class="col-md-5">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Search Products..."
+                           value="{{ request.GET.search }}">
+                </div>
+
+                <div class="col-md-4">
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+
+                        {% for cat in categories %}
+                        <option value="{{ cat.name }}"
+                            {% if request.GET.category == cat.name %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-warning w-100 fw-bold">
+                        🔍 Search
+                    </button>
+                </div>
+            </form>
+
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">Home</a>
+                </li>
+
+                {% if user.is_authenticated %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'cart' %}">Cart</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'orders' %}">Orders</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'wishlist' %}">Wishlist</a></li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'notifications' %}">
+                        Notifications
+                        {% if notification_count > 0 %}
+                        <span class="badge bg-danger">{{ notification_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <span class="nav-link text-warning">Hi, {{ user.username }}</span>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'logout' %}" class="btn btn-light ms-2">Logout</a>
+                </li>
+
+                {% else %}
+                <li class="nav-item">
+                    <a href="{% url 'login' %}" class="btn btn-light me-2">Login</a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'register' %}" class="btn btn-warning">Register</a>
+                </li>
+                {% endif %}
+            </ul>
+
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+
+    <h2 class="section-title">Shop By Category</h2>
+
+    <div class="row">
+        {% for cat in categories %}
+        <div class="col-6 col-md-3 mb-4">
+            <a href="?category={{ cat.name|urlencode }}" class="text-decoration-none text-dark">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    {% if cat.image %}
+                    <img src="{{ cat.image }}" class="card-img-top category-img" alt="{{ cat.name }}">
+                    {% else %}
+                    <img src="https://via.placeholder.com/300x180?text={{ cat.name }}" class="card-img-top category-img" alt="{{ cat.name }}">
+                    {% endif %}
+
+                    <div class="card-body text-center">
+                        <h6 class="fw-bold mb-0">{{ cat.name }}</h6>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="offer-box">
+        FREE DELIVERY on Orders Above ₹99 🚚
+    </div>
+
+    <h2 class="section-title">Most Shopped Near You</h2>
+
+    <div class="row">
+
+        {% for product in products %}
+        <div class="col-6 col-md-3 mb-4">
+
+            <div class="product-card">
+
+                <a href="{% url 'product_detail' product.id %}">
+                    <img src="{{ product.image_url }}" class="product-img" alt="{{ product.name }}">
+                </a>
+
+             {% if user.is_authenticated %}
+<div class="quantity-box" data-product-id="{{ product.id }}">
+
+    {% if product.quantity and product.quantity >= 0 %}
+        <button type="button" class="qty-btn" onclick="decreaseQty('{{ product.cart_id }}', this)">−</button>
+        <span class="qty-count">{{ product.quantity }}</span>
+        <button type="button" class="qty-btn" onclick="increaseQty('{{ product.cart_id }}', this)">+</button>
+    {% else %}
+        <button type="button" class="qty-btn" onclick="addToCart('{{ product.id }}', this)">+</button>
+    {% endif %}
+
+</div>
+{% endif %}
+                <h6 class="fw-bold mt-3">
+                    {{ product.name|truncatechars:35 }}
+                </h6>
+
+                <p class="fw-bold text-success">
+                    ₹{{ product.price }}
+                </p>
+
+            </div>
+
+        </div>
+
+        {% empty %}
+        <div class="col-12 text-center">
+            <h4>No Products Available</h4>
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<script>
+function addToCart(productId, btn) {
+    fetch("/add-to-cart/" + productId + "/")
+    .then(response => response.json())
+    .then(data => {
+        btn.parentElement.innerHTML = `
+            <button type="button" class="qty-btn" onclick="decreaseQty(${data.cart_id}, this)">−</button>
+            <span class="qty-count">${data.quantity}</span>
+            <button type="button" class="qty-btn" onclick="increaseQty(${data.cart_id}, this)">+</button>
+        `;
+    });
+}
+
+function increaseQty(cartId, btn) {
+    fetch("/increase/" + cartId + "/")
+    .then(response => response.json())
+    .then(data => {
+        btn.parentElement.querySelector(".qty-count").innerText = data.quantity;
+    })
+    .catch(error => console.log("Increase Error:", error));
+}
+
+function decreaseQty(cartId, btn) {
+    fetch("/decrease/" + cartId + "/")
+    .then(response => response.json())
+    .then(data => {
+        if (data.quantity == 0) {
+            const productId = btn.parentElement.dataset.productId;
+
+            btn.parentElement.innerHTML = `
+                <button type="button"
+                        class="qty-btn"
+                        onclick="addToCart(${productId}, this)">
+                    +
+                </button>
+            `;
+        } else {
+            btn.parentElement.querySelector(".qty-count").innerText = data.quantity;
+        }
+    })
+    .catch(error => console.log("Decrease Error:", error));
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

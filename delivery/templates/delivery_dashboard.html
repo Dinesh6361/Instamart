@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delivery Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f4fbff;
+            font-family: Arial, sans-serif;
+        }
+
+        .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .toggle-switch {
+            width: 86px;
+            height: 42px;
+            border-radius: 50px;
+            background: #9e9e9e;
+            position: relative;
+            display: inline-block;
+            transition: 0.3s;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.25);
+        }
+
+        .toggle-ball {
+            width: 34px;
+            height: 34px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 4px;
+            left: 5px;
+            transition: 0.3s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+
+        .toggle-switch.on {
+            background: #6fd36f;
+        }
+
+        .toggle-switch.on .toggle-ball {
+            left: 47px;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container">
+
+        <a class="navbar-brand fw-bold" href="{% url 'delivery_dashboard' %}">
+            🚚 Delivery App
+        </a>
+
+        <div class="ms-auto d-flex align-items-center gap-3">
+
+            {% if request.session.delivery_boy_id %}
+
+                <a href="{% url 'toggle_availability' %}" class="toggle-wrapper">
+                    {% if delivery_boy.is_available %}
+                        <span class="toggle-switch on">
+                            <span class="toggle-ball"></span>
+                        </span>
+                    {% else %}
+                        <span class="toggle-switch">
+                            <span class="toggle-ball"></span>
+                        </span>
+                    {% endif %}
+                </a>
+
+                <span class="text-white">
+                    Welcome {{ request.session.delivery_boy_name }}
+                </span>
+
+                <a href="{% url 'delivery_logout' %}" class="btn btn-danger btn-sm">
+                    Logout
+                </a>
+
+            {% else %}
+
+                <a href="{% url 'delivery_register' %}" class="btn btn-success btn-sm">
+                    Register
+                </a>
+
+                <a href="{% url 'delivery_login' %}" class="btn btn-primary btn-sm">
+                    Login
+                </a>
+
+            {% endif %}
+
+            <a href="{% url 'delivery_history' %}" class="btn btn-warning btn-sm">
+                History
+            </a>
+
+            <a href="{% url 'home' %}" class="btn btn-light btn-sm">
+                Store
+            </a>
+
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Delivery Boy Dashboard</h2>
+
+    <div class="row mb-4">
+
+        <div class="col-md-3">
+            <div class="card bg-success text-white p-3">
+                <h5>Total Delivered</h5>
+                <h3>{{ delivered_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-primary text-white p-3">
+                <h5>Total Earnings</h5>
+                <h3>₹{{ total_earnings }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark p-3">
+                <h5>Today's Deliveries</h5>
+                <h3>{{ today_orders }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-danger text-white p-3">
+                <h5>Today's Earnings</h5>
+                <h3>₹{{ today_earnings }}</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <a href="{% url 'delivery_history' %}" class="btn btn-dark mb-3">
+        Delivery History
+    </a>
+
+    {% for order in orders %}
+
+        <div class="card p-3 mb-3 shadow-sm">
+
+            <h5>Order #{{ order.id }}</h5>
+
+            <p><strong>Customer:</strong> {{ order.user.username }}</p>
+            <p><strong>Phone:</strong> {{ order.phone }}</p>
+            <p><strong>Address:</strong> {{ order.address }}</p>
+            <p><strong>Status:</strong> {{ order.delivery_status }}</p>
+            <p><strong>OTP:</strong> {{ order.delivery_otp }}</p>
+
+            {% if order.delivery_status == "Delivered" %}
+
+                <span class="badge bg-success fs-6">
+                    Delivered ✓
+                </span>
+
+            {% else %}
+
+                {% if order.delivery_status == "Order Placed" %}
+                    <a href="{% url 'update_delivery_status' order.id 'Picked Up' %}"
+                       class="btn btn-warning">
+                        Picked Up
+                    </a>
+                {% endif %}
+
+                {% if order.delivery_status == "Picked Up" %}
+                    <a href="{% url 'update_delivery_status' order.id 'Out For Delivery' %}"
+                       class="btn btn-primary">
+                        Out For Delivery
+                    </a>
+                {% endif %}
+
+                {% if order.delivery_status == "Out For Delivery" %}
+                    <a href="{% url 'verify_delivery_otp' order.id %}"
+                       class="btn btn-success">
+                        Verify OTP & Deliver
+                    </a>
+                {% endif %}
+
+                <a href="{% url 'delivery_live' order.id %}" class="btn btn-info">
+                    Start Live GPS
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    {% empty %}
+
+        <p>No orders found.</p>
+
+    {% endfor %}
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delivery Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Delivery Status Update Panel</h2>
+
+    {% for order in orders %}
+
+    <div class="card p-3 mb-3 shadow-sm">
+
+        <h5>Order #{{ order.id }}</h5>
+
+        <p>Total: ₹{{ order.total_amount }}</p>
+        <p>Customer: {{ order.user.username }}</p>
+        <p>Phone: {{ order.phone }}</p>
+        <p>Address: {{ order.address }}</p>
+
+        <form method="POST" action="{% url 'update_delivery_status' order.id %}">
+            {% csrf_token %}
+
+            <select name="delivery_status" class="form-control mb-2">
+                <option value="Order Placed">Order Placed</option>
+                <option value="Packed">Packed</option>
+                <option value="Out for Delivery">Out for Delivery</option>
+                <option value="Delivered">Delivered</option>
+            </select>
+
+            <input type="text"
+                   name="delivery_boy"
+                   class="form-control mb-2"
+                   value="{{ order.delivery_boy }}"
+                   placeholder="Delivery Partner">
+
+            <input type="text"
+                   name="estimated_time"
+                   class="form-control mb-2"
+                   value="{{ order.estimated_time }}"
+                   placeholder="Estimated Time">
+
+            <button class="btn btn-success">
+                Update Status
+            </button>
+            <a href="{% url 'delivery_live' order.id %}" class="btn btn-primary mt-2">
+    Start Live GPS
+</a>
+<a href="{% url 'verify_delivery_otp' order.id %}" class="btn btn-warning mt-2">
+    Verify OTP
+</a>
+        </form>
+
+    </div>
+
+    {% empty %}
+
+    <p>No orders found.</p>
+
+    {% endfor %}
+
+</div>
+
+</body>
+</html>

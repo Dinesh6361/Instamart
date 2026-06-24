@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Track Order</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+    <style>
+        body {
+            background: #f4fbff;
+            font-family: Arial, sans-serif;
+        }
+
+        .tracking-card {
+            border-radius: 20px;
+            border: none;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .step {
+            padding: 12px;
+            border-left: 5px solid #ccc;
+            background: #f8f9fa;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .active {
+            border-left-color: green;
+            background: #e9ffe9;
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container mt-5 mb-5">
+
+    <h2 class="mb-4">Live Delivery Tracking 🛵</h2>
+
+    <div class="card p-4 shadow tracking-card">
+
+        <h4>Order #{{ order.id }}</h4>
+
+        <p><strong>Total:</strong> ₹{{ order.total_amount }}</p>
+        <p><strong>Address:</strong> {{ order.address }}</p>
+        <p><strong>Phone:</strong> {{ order.phone }}</p>
+       {% if order.assigned_delivery_boy %}
+    {{ order.assigned_delivery_boy }}
+{% else %}
+    Not Assigned
+{% endif %}
+        <p><strong>Estimated Time:</strong> {{ order.estimated_time }}</p>
+
+        <p>
+            <strong>Status:</strong>
+            <span id="order-status" class="badge bg-primary">
+                {{ order.delivery_status }}
+            </span>
+        </p>
+
+        <hr>
+
+        <h5>Order Progress</h5>
+
+        <div class="step active">
+            ✅ Order Placed
+        </div>
+
+        <div id="step-picked"
+             class="step {% if order.delivery_status == 'Picked Up' or order.delivery_status == 'Out For Delivery' or order.delivery_status == 'Delivered' %}active{% endif %}">
+            📦 Picked Up
+        </div>
+
+        <div id="step-out"
+             class="step {% if order.delivery_status == 'Out For Delivery' or order.delivery_status == 'Delivered' %}active{% endif %}">
+            🚚 Out For Delivery
+        </div>
+
+        <div id="step-delivered"
+             class="step {% if order.delivery_status == 'Delivered' %}active{% endif %}">
+            ✅ Delivered
+        </div>
+
+        <h5 class="mt-4">Delivery Boy Live Location</h5>
+
+        <div id="map"></div>
+
+        <a href="{% url 'orders' %}" class="btn btn-secondary mt-4">
+            Back to Orders
+        </a>
+
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    var lat = parseFloat("{{ order.delivery_lat|default:'12.9716' }}");
+    var lng = parseFloat("{{ order.delivery_lng|default:'77.5946' }}");
+
+    if (isNaN(lat)) {
+        lat = 12.9716;
+    }
+
+    if (isNaN(lng)) {
+        lng = 77.5946;
+    }
+
+    var map = L.map("map").setView([lat, lng], 15);
+
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19
+    }).addTo(map);
+
+    var marker = L.marker([lat, lng]).addTo(map);
+
+    marker.bindPopup("Delivery Boy Location").openPopup();
+
+    function updateSteps(status) {
+        document.getElementById("step-picked").classList.remove("active");
+        document.getElementById("step-out").classList.remove("active");
+        document.getElementById("step-delivered").classList.remove("active");
+
+        if (
+            status === "Picked Up" ||
+            status === "Out For Delivery" ||
+            status === "Delivered"
+        ) {
+            document.getElementById("step-picked").classList.add("active");
+        }
+
+        if (
+            status === "Out For Delivery" ||
+            status === "Delivered"
+        ) {
+            document.getElementById("step-out").classList.add("active");
+        }
+
+        if (status === "Delivered") {
+            document.getElementById("step-delivered").classList.add("active");
+        }
+    }
+
+    function updateLocation() {
+
+        fetch("/get-location/{{ order.id }}/")
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+
+                if (data.status) {
+                    document.getElementById("order-status").innerText = data.status;
+                    updateSteps(data.status);
+                }
+
+                if (data.lat && data.lng) {
+
+                    var newLat = parseFloat(data.lat);
+                    var newLng = parseFloat(data.lng);
+
+                    if (!isNaN(newLat) && !isNaN(newLng)) {
+
+                        marker.setLatLng([newLat, newLng]);
+                        map.panTo([newLat, newLng]);
+                    }
+                }
+            })
+            .catch(function(error) {
+                console.log("Map error:", error);
+            });
+    }
+
+    updateLocation();
+    setInterval(updateLocation, 5000);
+</script>
+
+</body>
+</html>
