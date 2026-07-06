@@ -26,11 +26,10 @@ SECRET_KEY = 'django-insecure-u9q&%%_7ho!1z8ilpfnfg8)@z2$*8u(+iz5y)gv&hzyk!($fko
 DEBUG = True
 
 ALLOWED_HOSTS = [
-   
-    "127.0.0.1",
+    "instamart-5ojz.onrender.com",
+    ".onrender.com",
     "localhost",
-    "10.57.14.115"
-
+    "127.0.0.1",
 ]
 
 
